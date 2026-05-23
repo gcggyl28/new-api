@@ -24,6 +24,10 @@ import { Button } from "@/components/ui/button";
  * Note: If onConfirm throws, the dialog will still close. If you want to keep
  * it open on error, manage the `loading` prop externally and call onOpenChange
  * yourself after handling the error.
+ *
+ * Personal note: changed default confirmVariant to "default" since most of my
+ * use cases are not destructive actions (e.g. confirmations, not deletions).
+ * Change back to "destructive" if wiring up delete flows.
  */
 
 export interface ConfirmDialogProps {
@@ -39,7 +43,7 @@ export interface ConfirmDialogProps {
   confirmLabel?: string;
   /** Label for the cancel button (default: "Cancel"). */
   cancelLabel?: string;
-  /** Variant applied to the confirm button (default: "destructive"). */
+  /** Variant applied to the confirm button (default: "default"). */
   confirmVariant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
   /** Called when the user clicks the confirm button. */
   onConfirm: () => void | Promise<void>;
@@ -56,7 +60,7 @@ export function ConfirmDialog({
   description = "This action cannot be undone.",
   confirmLabel = "Confirm",
   cancelLabel = "Cancel",
-  confirmVariant = "destructive",
+  confirmVariant = "default",
   onConfirm,
   onCancel,
   loading = false,
