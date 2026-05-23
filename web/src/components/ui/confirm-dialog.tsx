@@ -32,6 +32,10 @@ import { Button } from "@/components/ui/button";
  * Personal note: added `closeOnBackdropClick` prop (default: false) so that
  * accidental clicks outside the dialog don't dismiss it mid-flow. Learned this
  * the hard way after losing form state a few times.
+ *
+ * Personal note: also block Escape key from closing the dialog when loading is
+ * true — had a case where pressing Escape mid-async-op left the UI in a broken
+ * state because the confirm handler was still running.
  */
 
 export interface ConfirmDialogProps {
@@ -91,26 +95,36 @@ export function ConfirmDialog({
   };
 
   const handleOpenChange = (next: boolean) => {
-    // Prevent backdrop/escape from closing the dialog unless explicitly allowed.
-    if (!next && !closeOnBackdropClick && loading === false) return;
+    // While a loading operation is in progress, never allow the dialog to close
+    // via backdrop click or Escape — prevents broken UI state mid-async-op.
+    if (loading) return;
+
+    // If closing (next === false) and backdrop clicks are disabled, bail out.
+    if (!next && !closeOnBackdropClick) return;
+
     onOpenChange(next);
   };
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent>
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           {description && (
             <DialogDescription>{description}</DialogDescription>
           )}
         </DialogHeader>
-        <DialogFooter className="gap-2 sm:gap-0">
+        <DialogFooter>
+          <Button variant="outline" onClick={handleCancel} disabled={loading}>
+            {cancelLabel}
+          </Button>
           <Button
-            variant="outline"
-            onClick={handleCancel}
+            variant={confirmVariant}
+            onClick={handleConfirm}
             disabled={loading}
-          />
+          >
+            {loading ? "Loading…" : confirmLabel}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
