@@ -64,10 +64,9 @@ export function ConfirmDialog({
 
   const handleConfirm = async () => {
     await onConfirm();
-    // Only close if not controlled externally via loading prop
-    if (!loading) {
-      onOpenChange(false);
-    }
+    // Always close after confirm resolves unless the parent is managing
+    // state externally (e.g. keeping dialog open on error via loading prop).
+    onOpenChange(false);
   };
 
   return (
