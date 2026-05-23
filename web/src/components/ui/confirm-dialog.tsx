@@ -20,6 +20,10 @@ import { Button } from "@/components/ui/button";
  *     description="This action cannot be undone."
  *     onConfirm={handleDelete}
  *   />
+ *
+ * Note: If onConfirm throws, the dialog will still close. If you want to keep
+ * it open on error, manage the `loading` prop externally and call onOpenChange
+ * yourself after handling the error.
  */
 
 export interface ConfirmDialogProps {
@@ -63,10 +67,13 @@ export function ConfirmDialog({
   };
 
   const handleConfirm = async () => {
-    await onConfirm();
-    // Always close after confirm resolves unless the parent is managing
-    // state externally (e.g. keeping dialog open on error via loading prop).
-    onOpenChange(false);
+    try {
+      await onConfirm();
+    } finally {
+      // Close the dialog whether onConfirm succeeded or threw.
+      // To keep it open on error, manage state externally via the loading prop.
+      onOpenChange(false);
+    }
   };
 
   return (
