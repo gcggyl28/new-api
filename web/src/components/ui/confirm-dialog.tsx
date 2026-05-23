@@ -28,6 +28,10 @@ import { Button } from "@/components/ui/button";
  * Personal note: changed default confirmVariant to "default" since most of my
  * use cases are not destructive actions (e.g. confirmations, not deletions).
  * Change back to "destructive" if wiring up delete flows.
+ *
+ * Personal note: added `closeOnBackdropClick` prop (default: false) so that
+ * accidental clicks outside the dialog don't dismiss it mid-flow. Learned this
+ * the hard way after losing form state a few times.
  */
 
 export interface ConfirmDialogProps {
@@ -51,6 +55,11 @@ export interface ConfirmDialogProps {
   onCancel?: () => void;
   /** When true the confirm button shows a loading spinner and is disabled. */
   loading?: boolean;
+  /**
+   * When true, clicking outside the dialog (backdrop) will close it.
+   * Defaults to false to prevent accidental dismissal.
+   */
+  closeOnBackdropClick?: boolean;
 }
 
 export function ConfirmDialog({
@@ -64,6 +73,7 @@ export function ConfirmDialog({
   onConfirm,
   onCancel,
   loading = false,
+  closeOnBackdropClick = false,
 }: ConfirmDialogProps) {
   const handleCancel = () => {
     onCancel?.();
@@ -80,8 +90,14 @@ export function ConfirmDialog({
     }
   };
 
+  const handleOpenChange = (next: boolean) => {
+    // Prevent backdrop/escape from closing the dialog unless explicitly allowed.
+    if (!next && !closeOnBackdropClick && loading === false) return;
+    onOpenChange(next);
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
@@ -94,19 +110,7 @@ export function ConfirmDialog({
             variant="outline"
             onClick={handleCancel}
             disabled={loading}
-          >
-            {cancelLabel}
-          </Button>
-          <Button
-            variant={confirmVariant}
-            onClick={handleConfirm}
-            disabled={loading}
-          >
-            {loading && (
-              <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-            )}
-            {confirmLabel}
-          </Button>
+          />
         </DialogFooter>
       </DialogContent>
     </Dialog>
