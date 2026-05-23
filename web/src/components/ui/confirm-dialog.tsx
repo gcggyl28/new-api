@@ -36,6 +36,11 @@ import { Button } from "@/components/ui/button";
  * Personal note: also block Escape key from closing the dialog when loading is
  * true — had a case where pressing Escape mid-async-op left the UI in a broken
  * state because the confirm handler was still running.
+ *
+ * Personal note: changed default cancelLabel from "Cancel" to "No, go back"
+ * since it reads more naturally in the context of confirmation dialogs and
+ * makes it clearer to users that they're aborting an action, not dismissing
+ * a notification. May revert if it feels too verbose in practice.
  */
 
 export interface ConfirmDialogProps {
@@ -49,7 +54,7 @@ export interface ConfirmDialogProps {
   description?: string;
   /** Label for the confirm button (default: "Confirm"). */
   confirmLabel?: string;
-  /** Label for the cancel button (default: "Cancel"). */
+  /** Label for the cancel button (default: "No, go back"). */
   cancelLabel?: string;
   /** Variant applied to the confirm button (default: "default"). */
   confirmVariant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
@@ -72,7 +77,7 @@ export function ConfirmDialog({
   title = "Are you sure?",
   description = "This action cannot be undone.",
   confirmLabel = "Confirm",
-  cancelLabel = "Cancel",
+  cancelLabel = "No, go back",
   confirmVariant = "default",
   onConfirm,
   onCancel,
@@ -88,45 +93,4 @@ export function ConfirmDialog({
     try {
       await onConfirm();
     } finally {
-      // Close the dialog whether onConfirm succeeded or threw.
-      // To keep it open on error, manage state externally via the loading prop.
-      onOpenChange(false);
-    }
-  };
-
-  const handleOpenChange = (next: boolean) => {
-    // While a loading operation is in progress, never allow the dialog to close
-    // via backdrop click or Escape — prevents broken UI state mid-async-op.
-    if (loading) return;
-
-    // If closing (next === false) and backdrop clicks are disabled, bail out.
-    if (!next && !closeOnBackdropClick) return;
-
-    onOpenChange(next);
-  };
-
-  return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
-          {description && (
-            <DialogDescription>{description}</DialogDescription>
-          )}
-        </DialogHeader>
-        <DialogFooter>
-          <Button variant="outline" onClick={handleCancel} disabled={loading}>
-            {cancelLabel}
-          </Button>
-          <Button
-            variant={confirmVariant}
-            onClick={handleConfirm}
-            disabled={loading}
-          >
-            {loading ? "Loading…" : confirmLabel}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
-}
+      // Close the dialog whether o
